@@ -1,5 +1,5 @@
 function eiko(controller, factors, iD){
-	pauseDelay = 1000;
+	pauseDelay = 500;
 	transTime = 1000;
 	pColors = controller.getColors();
 	var self = this;
@@ -185,6 +185,7 @@ function eiko(controller, factors, iD){
 		innerCols.attr('y2', function(d){return d3.select(this).attr('y1')}).style('opacity',1)
 			.transition().duration(transTime)
 			.attr('y2',wP.fifthsH[4][1])
+			.transition().duration(pauseDelay)
 			.each('end',function(){
 				count--;
 				if(count==0){
@@ -201,7 +202,7 @@ function eiko(controller, factors, iD){
 			count--;
 			var isLast = (count==0);
 			var thisCol = d3.select(this);
-			setTimeout(function(){self.splitCol(thisCol,i,wP,screen,rect, scale, isLast)},i*transTime);
+			setTimeout(function(){self.splitCol(thisCol,i,wP,screen,rect, scale, isLast)},i*(transTime+pauseDelay));
 		})
 	}
 	this.nameSecondary = function(wP,screen,rect, scale, yValues){
@@ -222,7 +223,7 @@ function eiko(controller, factors, iD){
 		var cProbY = 0;
 		var yValues = [];
 		for(var j =0;j<d3.keys(secondaryCounts).length-1;j++){
-			col.append('rect').attr('x', col.select('#bLine').attr('x1')).attr('height',function(d){
+			col.append('rect').attr('class','secondRect').attr('x', col.select('#bLine').attr('x1')).attr('height',function(d){
 				var name = d3.keys(secondaryCounts)[j];
 				var prob = secondaryProbs[name];
 				var retPos = self.yScale(prob);
@@ -236,7 +237,7 @@ function eiko(controller, factors, iD){
 			}).attr('width',col.select('#bLine').attr('x2') - col.select('#bLine').attr('x1'))
 			.style('fill', function(){
 				var retVal = d3.rgb(pColors[j][0][0], pColors[j][0][1],pColors[j][0][2]);
-				return retVal;}).style('opacity',0.8);
+				return retVal;}).style('opacity',0);
 			col.append('text').attr('id',colI+'-'+j+'text').attr('data-name',d3.keys(secondaryCounts)[j]).attr('class', 'secondaryCounts').attr('y',wP.fifthsH[1][1]).attr('x',col.select('.pgCount').attr('x')).attr('text-anchor','middle').attr('font-size',wP.fontSize)
 			.style('fill','white').style('stroke','black').style('opacity',1)
 			.text(secondaryCounts[d3.keys(secondaryCounts)[j]]);
@@ -244,6 +245,8 @@ function eiko(controller, factors, iD){
 
 		}
 		cProb = 0;
+		col.selectAll('.secondRect').transition().duration(transTime)
+			.style('opacity',0.8);
 		col.selectAll('.secondaryCounts').transition().duration(transTime)
 			.attr('y', function(d){
 				// var name = d3.select(this).attr('data-name');
