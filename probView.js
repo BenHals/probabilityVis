@@ -88,6 +88,15 @@ function probView(controller){
 			$('#fac2').val(f1);
 			controller.primeSelected();
 		})
-
+		var cont = $("<button>").attr('id','continue').attr('type','button').attr('class','btn btn-default action-button').text("Continue").appendTo(oC);
+		cont.click(function(){
+			controller.continue();
+		})
+	}
+	this.canContinue = function(){
+		d3.select('#continue').classed('btn-success',true);
+	}
+	this.cantContinue = function(){
+		d3.select('#continue').classed('btn-success',false);
 	}
 }

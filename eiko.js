@@ -1,4 +1,5 @@
 function eiko(controller, factors, iD){
+	this.paused = false;
 	pauseDelay = 500;
 	transTime = 1000;
 	pColors = controller.getColors();
@@ -7,6 +8,7 @@ function eiko(controller, factors, iD){
 	factor2 = factors[1][0];
 	self.noFactors = false;
 	self.oneFactor = false;
+	
 	if(factor2 == '-'){
 		if(factor1 == '-'){
 			self.noFactors = true;
@@ -18,11 +20,12 @@ function eiko(controller, factors, iD){
 			self.noFactors = true;
 		}
 	}
+	self.F2Ok = !self.oneFactor;
 	var mainScreen = d3.select("#eikosogram").append("svg").style('width','100%').style('height','100%');
 
 	wP = new WindowPos([0, parseInt(mainScreen.style('width'),10), 0,parseInt(mainScreen.style('height'),10)]);
 	this.mainWp = wP;
-	eKRect = [wP.fifthsW[1][0],wP.fifthsW[3][1],0,wP.fifthsH[2][1]];
+	eKRect = [wP.fifthsW[1][0],wP.fifthsW[3][1],10,wP.fifthsH[2][1]];
 	this.init = function(){
 		this.aFs = this.calcSecondaryFactor(factor1,factor2, iD);
 		if(!self.noFactors){
@@ -35,6 +38,7 @@ function eiko(controller, factors, iD){
 		this.yScale = d3.scale.linear().domain([0,1]).range([rect[2],rect[3]]);
 		container = screen.append("svg").attr('id','mainSquare');
 		this.drawPop(primeWP,container,rect, propToScreen);
+		screen.append('svg').attr('id','colorHolder');
 		// var cumulativeProp = 0;
 		// var rectSplit = screen.selectAll('rect').data(d3.keys(this.aFs));
 		// 	rectSplit.enter().append('rect')
@@ -52,14 +56,16 @@ function eiko(controller, factors, iD){
 	}
 	this.drawPop = function(wP,screen,rect, scale){
 		//Base Rectangle
-		screen.append('rect').attr('x',rect[0]).attr('y',rect[2]).attr('width',rect[1]-rect[0]).attr('height',rect[3]-rect[2]).style('fill', 'grey').style('stroke','black').style('fill-opacity',0.2);
+		screen.append('rect').attr('x',rect[0]).attr('y',rect[2]).attr('width',rect[1]-rect[0]).attr('height',rect[3]-rect[2]).style('fill', 'grey').style('stroke','black').style('stroke-width',10).style('stroke-alignment','outer').style('fill-opacity',0.2);
+		screen.append('rect').attr('x',rect[0]).attr('y',rect[2]).attr('width',rect[1]-rect[0]).attr('height',rect[3]-rect[2]).style('fill', 'lightgrey').style('fill-opacity',1);
+
 		//Population Number
 		screen.append('text').attr('id','popNum').attr('x',middle(rect[1],rect[0])).attr('y',middle(rect[3],rect[2])).attr('text-anchor','middle').attr('font-size',wP.fontSize*2)
-				.style('fill','grey').style('opacity',0.8)
+				.style('fill','black').style('opacity',0.8)
 				.text(iD.length);
 		//Individuals
 		screen.append('text').attr('id','individuals').attr('x',middle(rect[1],rect[0])).attr('y',middle(rect[3],rect[2])+wP.fontSize*2).attr('text-anchor','middle').attr('font-size',wP.fontSize*2)
-				.style('fill','grey').style('opacity',0.8)
+				.style('fill','black').style('opacity',0.8)
 				.text('Individuals');
 
 		setTimeout(function(){self.shiftDown(wP,screen,rect, scale)}, pauseDelay);
@@ -67,45 +73,57 @@ function eiko(controller, factors, iD){
 	this.shiftDown = function(wP,screen,rect, scale){
 		var popNum = d3.select('#popNum');
 		var individuals = d3.select('#individuals');
-		var pfTitle = screen.append('text').attr('id','pFTitle').attr('x',middle(rect[1],rect[0])).attr('y',self.mainWp.fifthsH[4][0]).attr('text-anchor','middle').attr('font-size',wP.fontSize*2)
+		var pfTitle = screen.append('text').attr('id','pFTitle').attr('x',middle(rect[1],rect[0])).attr('y',self.mainWp.fifthsH[3][0]+wP.fontSize*2).attr('text-anchor','middle').attr('font-size',wP.fontSize*2)
 				.style('fill','black').style('opacity',0)
 				.text(factor1);
-		individuals.transition().duration(transTime).style('opacity',0).each('end',function(){d3.select(this).remove()});
 		var t0 = screen.transition().delay(pauseDelay).duration(transTime);
 		t0.select('#popNum').attr('y',wP.fifthsH[3][1]);
-		var t1 = t0.transition();
-		t1.select('#pFTitle').style('opacity',1).each('end',function(){self.animateSplit(wP,screen,rect, scale);});
+		t0.select('#individuals').attr('y',wP.fifthsH[3][1]+wP.fontSize*2).each('end',function(){
+			//self.animateSplit(wP,screen,rect, scale);
+			self.stopPoint(wP,screen,rect, scale, self.fadeName);
+		});;
+
+	}
+	this.fadeName = function(wP,screen,rect, scale){
+		var t1 = screen.transition().duration(transTime);
+		t1.select('#pFTitle').style('opacity',1).each('end',function(){
+			//self.animateSplit(wP,screen,rect, scale);
+			self.animateSplit(wP,screen,rect, scale, self.animateSplit);
+		});;
 
 	}
 	this.animateSplit = function(wP,screen,rect, scale){
 		//create containers for each column
 		self.pFCols = screen.selectAll('g').data(d3.keys(self.aFs)).enter().append('g').attr('class','pFCols');
 		var text = self.pFCols.append('text').attr('class','pgCount').attr('x',middle(rect[1],rect[0])).attr('y',wP.fifthsH[3][1]).attr('text-anchor','middle').attr('font-size',wP.fontSize)
-			.style('fill','grey').style('opacity',0)
+			.style('fill','black').style('opacity',0)
 			.text(function(d){return self.aFs[d]['num']});
 		var cumulativeProp = 0;
 		var names = self.pFCols.append('text').attr('class','pgName').attr('y',wP.fifthsH[1][1]+wP.fontSize).attr('x',function(d){
 				cumulativeProp += self.aFs[d]['prob']; 
-				return scale(cumulativeProp - self.aFs[d]['prob']/2)}).attr('text-anchor','middle').attr('font-size',function(d){return fontS(wP.fontSize, scale(self.aFs[d]['prob']), d  )})
-			.style('fill','grey').style('opacity',0)
+				return scale(cumulativeProp - self.aFs[d]['prob']/2)}).attr('text-anchor','middle').attr('font-size',function(d){return wP.fontSize})
+			.style('fill','black').style('opacity',0)
 			.text(function(d){return d});
 		cumulativeProp = 0;
 		var count = d3.keys(self.aFs).length;
 		text.transition().delay(function(d,i){
+			return 0;
 			var retVal = i*(transTime+(pauseDelay/5));
 			return retVal;}).duration(transTime)
 			.attr('y',wP.fifthsH[1][1]).attr('x',function(d,i){
 				cumulativeProp += self.aFs[d]['prob']; 
 				return scale(cumulativeProp - self.aFs[d]['prob']/2)})
-			.style('opacity',1).style('fill','white').style('stroke','black');
+			.style('opacity',1).style('fill','black').style('stroke','black').style('stroke-width',0);
 		names.transition().delay(function(d,i){
+			return transTime*0.8;
 			var retVal = (i+1)*(transTime)+(i*(pauseDelay/5));
-			return retVal;}).duration(transTime)
+			return retVal;}).duration(100)
 			.style('opacity',1).transition().duration(pauseDelay)
 			.each('end', function(d,i){count--;if(count==0){self.fadeGN(wP,screen,rect, scale)}});
 	}
 	this.fadeGN = function(wP,screen,rect, scale){
 		var popNum = d3.select('#popNum');
+		var individuals = d3.select('#individuals');
 		self.pFCols = d3.selectAll('.pFCols');
 		var cumulativeProp = 0;
 		var count = d3.keys(self.aFs).length;
@@ -115,6 +133,7 @@ function eiko(controller, factors, iD){
 		// 	.style('fill','grey').style('opacity',0)
 		// 	.text(function(d){return d});
 		var text = d3.selectAll('.pgName')
+		individuals.transition().duration(transTime).style('opacity',0).each('end',function(){d3.select(this).remove()});
 		popNum.transition().duration(transTime).style('opacity',0).each('end', function(d,i){
 				//count--;
 				//if(count == 0){
@@ -132,8 +151,9 @@ function eiko(controller, factors, iD){
 	}
 	this.nameDrop = function(wP,screen,rect, scale){
 		var count = d3.keys(self.aFs).length;
+		d3.select('#pFTitle').transition().duration(transTime).attr('y',self.mainWp.fifthsH[4][0])
 		d3.selectAll('.pgName').transition().duration(transTime)
-			.attr('y', wP.fifthsH[4][1]+wP.fontSize+20)
+			.attr('y', function(d,i){return wP.fifthsH[4][1]+wP.fontSize*1 + 5*((i%2))})
 			.each('end',function(){
 				count--;
 				if(count==0){
@@ -147,6 +167,7 @@ function eiko(controller, factors, iD){
 		var cProbX2 = 0;
 		var cProbIsOuter = 0;
 		//left edge
+		self.pFCols.append('g').attr('id','colRectHolder');
 		self.pFCols.append('line').attr('x1', function(d){
 			var retVal = cProbX1;
 			cProbX1 += self.aFs[d]['prob'];
@@ -159,12 +180,12 @@ function eiko(controller, factors, iD){
 			var fTest = cProbIsOuter;
 			cProbIsOuter += self.aFs[d]['prob'];
 			var eTest = cProbIsOuter;
-			if(fTest == 0 | eTest == 1){
+			if(fTest == 0){
 				return 'outerBound';
 			}else{
 				return 'innerBound';
 			}
-		}).style('width', 1).style('stroke','black').style('opacity',0);
+		}).style('stroke-width', 3).style('stroke','black').style('opacity',0);
 		var cProbX1 = 0;
 		var cProbX2 = 0;
 		var cProbIsOuter = 0;
@@ -183,12 +204,12 @@ function eiko(controller, factors, iD){
 			var fTest = cProbIsOuter;
 			cProbIsOuter += self.aFs[d]['prob'];
 			var eTest = cProbIsOuter;
-			if(fTest == 1 | eTest == 1){
+			if(eTest == 1){
 				return 'outerBound';
 			}else{
 				return 'innerBound';
 			}
-		}).style('width', 1).style('stroke','black').style('opacity',0);
+		}).style('stroke-width', 3).style('stroke','black').style('opacity',0);
 		var cProbX1 = 0;
 		var cProbX2 = 0;
 		var cProbIsOuter = 0;
@@ -202,7 +223,7 @@ function eiko(controller, factors, iD){
 			var retVal = cProbX2;
 			return scale(retVal);
 		}).attr('y1',wP.fifthsH[0][0]).attr('y2',wP.fifthsH[0][0]).attr('class','outerBound')
-		.style('width', 1).style('stroke','black').style('opacity',0);
+		.style('width', 3).style('stroke','black').style('opacity',0);
 		var cProbX1 = 0;
 		var cProbX2 = 0;
 		var cProbIsOuter = 0;
@@ -216,7 +237,7 @@ function eiko(controller, factors, iD){
 			var retVal = cProbX2;
 			return scale(retVal);
 		}).attr('y1',wP.fifthsH[4][1]).attr('y2',wP.fifthsH[4][1]).attr('class','outerBound')
-		.style('width', 1).style('stroke','black').style('opacity',0);
+		.style('width', 3).style('stroke','black').style('opacity',0);
 
 		var innerCols = d3.selectAll('.innerBound')
 		var count = innerCols.length;
@@ -230,10 +251,10 @@ function eiko(controller, factors, iD){
 					if(factor2 == '-'){
 							oneFactor = true;
 						}
-				if(count==0 && !oneFactor){
+				if(count==0){
 
 					//self.splitCol(d3.select('.pFCols'),0, wP,screen,rect, scale)
-					self.secondaryTitle(wP,screen,rect, scale);
+					self.stopPoint(wP,screen,rect, scale,self.secondaryTitle);
 				}
 			});
 
@@ -262,8 +283,8 @@ function eiko(controller, factors, iD){
 		for(var i = 0; i<secNames.length-1;i++){
 			var yValue = self.yScale(middle(prevY, prevY+secondaryCounts[secNames[i]]));
 			prevY += secondaryCounts[secNames[i]];
-			screen.append('text').attr('class','sfNames').attr('x',self.mainWp.fifthsW[4][0]).attr('y',yValue).attr('text-anchor','left').attr('font-size',Math.min(wP.fontSize, (self.mainWp.oneFifthW/2)/secNames[i].length))
-			.style('fill','grey').style('opacity',0)
+			screen.append('text').attr('class','sfNames').attr('x',self.mainWp.fifthsW[4][0]+10).attr('y',yValue).attr('text-anchor','left').attr('font-size',Math.min(wP.fontSize, (self.mainWp.oneFifthW/2)/secNames[i].length))
+			.style('fill','black').style('opacity',0)
 			.text(secNames[i]);
 		}
 		var count = secNames.length-1;
@@ -283,10 +304,10 @@ function eiko(controller, factors, iD){
 		var cProbY = 0;
 		var yValues = [];
 		for(var j =0;j<d3.keys(secondaryCounts).length-1;j++){
-			col.append('rect').attr('class','secondRect').attr('x', col.select('#bLine').attr('x1')).attr('height',function(d){
+			col.select('#colRectHolder').append('rect').attr('class','secondRect').attr('x', col.select('#bLine').attr('x1')).attr('height',function(d){
 				var name = d3.keys(secondaryCounts)[j];
 				var prob = secondaryProbs[name];
-				var retPos = self.yScale(prob);
+				var retPos = self.yScale(prob)-self.yScale(0);
 				return retPos;
 			}).attr('y',function(d){
 				var retValue = cProbY;
@@ -299,7 +320,7 @@ function eiko(controller, factors, iD){
 				var retVal = d3.rgb(pColors[j][0][0], pColors[j][0][1],pColors[j][0][2]);
 				return retVal;}).style('opacity',0);
 			col.append('text').attr('id',colI+'-'+j+'text').attr('data-name',d3.keys(secondaryCounts)[j]).attr('class', 'secondaryCounts').attr('y',wP.fifthsH[1][1]).attr('x',col.select('.pgCount').attr('x')).attr('text-anchor','middle').attr('font-size',wP.fontSize)
-			.style('fill','white').style('stroke','black').style('opacity',1)
+			.style('fill','black').style('stroke','black').style('opacity',1).style('stroke-width',0)
 			.text(secondaryCounts[d3.keys(secondaryCounts)[j]]);
 
 
@@ -382,6 +403,33 @@ function eiko(controller, factors, iD){
 	this.destroy = function(callback){
 		d3.select("#eikosogram").selectAll("*").transition().duration(0).attr('x',0).each('end', function(){d3.select(this).remove();});
 		callback();
+	}
+	this.stopPoint = function(wP,screen,rect, scale,resume){
+		self.wP = wP;
+		self.screen = screen;
+		self.rect = rect;
+		self.scale = scale;
+		self.resume = resume;
+		self.paused = true;
+		if(resume == self.secondaryTitle){
+			self.F2Ok = true;
+		}
+		controller.canContinue();
+	}
+	this.continue = function(){
+		if(self.paused && (!self.F2Ok | !self.oneFactor)){
+			controller.cantContinue();
+			self.paused = false;
+			self.resume(self.wP,self.screen,self.rect,self.scale);
+		}
+	}
+	this.continueF2 = function(nfactors){
+		self.paused = false;
+		controller.cantContinue();
+		self.F2Ok = false;
+		factor2 = nfactors[0];
+		self.aFs = this.calcSecondaryFactor(factor1,factor2, iD);
+		self.secondaryTitle(self.wP,self.screen,self.rect, self.scale);
 	}
 	this.init();
 }

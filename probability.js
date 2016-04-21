@@ -7,6 +7,7 @@ function probability(){
 	this.view = new probView(this)
 	this.view.init()
 	this.model = new probModel(this)
+	oldFactors = [-2,-2];
 	this.getColors = function(){
 		return pColors;
 	}
@@ -27,7 +28,14 @@ function probability(){
 		return this.view.getFactors();
 	}
 	this.primeSelected = function(){
+		var newFactors = this.getFactors();
+		if(oldFactors[0] == newFactors[0] && oldFactors[1] == -1 && this.dataDisplay.F2Ok){
+			this.dataDisplay.continueF2(self.model.getHeading(newFactors[1]));
+		}else{
+		
 		this.destroyScreen(self.createDisplay);
+		}
+		oldFactors=newFactors;
 	}
 	this.destroyScreen = function(callback){
 		this.dataDisplay.destroy(function(){
@@ -35,6 +43,15 @@ function probability(){
 			callback();
 		});
 
+	}
+	this.continue = function(){
+		this.dataDisplay.continue();
+	}
+	this.canContinue = function(){
+		this.view.canContinue();
+	}
+	this.cantContinue = function(){
+		this.view.cantContinue();
 	}
 }
 var mainControl = null;

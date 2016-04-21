@@ -6,6 +6,7 @@ function probModel(controller){
 		var reader = new FileReader();
 		reader.readAsText(file);
 		dataSplit = {};
+		oldFactors = [];
 		reader.onload = function(e){
 			var csv = e.target.result;
 			self.setUpDataVeiw(csv);
