@@ -61,11 +61,12 @@ function probView(controller){
 			container.append($("<label>").text("Factor "+j));
 			dC = $("<div>").appendTo(container);
 			var s = $("<select>").attr("id","fac"+j).appendTo(dC);
+			$("<option>").attr('value', -1).text('-').attr('selected',true).appendTo(s);
 			$.each(headings, function(i, val){
 				var o = $("<option>").attr('value', i).text(val[0]).appendTo(s);
-				if(i+1 == j){
-					o.attr('selected',true);
-				}
+				// if(i+1 == j){
+				// 	o.attr('selected',true);
+				// }
 			})
 		}
 		var SM = document.getElementById("fac1");

@@ -31,6 +31,7 @@ function probModel(controller){
 		controller.finishedModelSU();
 	}
 	this.getHeading = function(i){
+		if(i == -1) return '-';
 		return this.getCategorical()[i];
 	}
 	this.getData = function(){

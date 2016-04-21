@@ -5,6 +5,19 @@ function eiko(controller, factors, iD){
 	var self = this;
 	factor1 = factors[0][0];
 	factor2 = factors[1][0];
+	self.noFactors = false;
+	self.oneFactor = false;
+	if(factor2 == '-'){
+		if(factor1 == '-'){
+			self.noFactors = true;
+		}else{
+			self.oneFactor = true;
+		}
+	}else{
+		if(factor1 == '-'){
+			self.noFactors = true;
+		}
+	}
 	var mainScreen = d3.select("#eikosogram").append("svg").style('width','100%').style('height','100%');
 
 	wP = new WindowPos([0, parseInt(mainScreen.style('width'),10), 0,parseInt(mainScreen.style('height'),10)]);
@@ -12,7 +25,9 @@ function eiko(controller, factors, iD){
 	eKRect = [wP.fifthsW[1][0],wP.fifthsW[3][1],0,wP.fifthsH[2][1]];
 	this.init = function(){
 		this.aFs = this.calcSecondaryFactor(factor1,factor2, iD);
-		this.drawPrimary(mainScreen, eKRect);
+		if(!self.noFactors){
+			this.drawPrimary(mainScreen, eKRect);
+		}
 	}
 	this.drawPrimary = function(screen,rect){
 		primeWP = new WindowPos(rect);
@@ -37,7 +52,7 @@ function eiko(controller, factors, iD){
 	}
 	this.drawPop = function(wP,screen,rect, scale){
 		//Base Rectangle
-		screen.append('rect').attr('x',rect[0]).attr('y',rect[2]).attr('width',rect[1]-rect[0]).attr('height',rect[3]-rect[2]).style('fill', 'grey').style('opacity',0.2);
+		screen.append('rect').attr('x',rect[0]).attr('y',rect[2]).attr('width',rect[1]-rect[0]).attr('height',rect[3]-rect[2]).style('fill', 'grey').style('stroke','black').style('fill-opacity',0.2);
 		//Population Number
 		screen.append('text').attr('id','popNum').attr('x',middle(rect[1],rect[0])).attr('y',middle(rect[3],rect[2])).attr('text-anchor','middle').attr('font-size',wP.fontSize*2)
 				.style('fill','grey').style('opacity',0.8)
@@ -52,24 +67,41 @@ function eiko(controller, factors, iD){
 	this.shiftDown = function(wP,screen,rect, scale){
 		var popNum = d3.select('#popNum');
 		var individuals = d3.select('#individuals');
+		var pfTitle = screen.append('text').attr('id','pFTitle').attr('x',middle(rect[1],rect[0])).attr('y',self.mainWp.fifthsH[4][0]).attr('text-anchor','middle').attr('font-size',wP.fontSize*2)
+				.style('fill','black').style('opacity',0)
+				.text(factor1);
 		individuals.transition().duration(transTime).style('opacity',0).each('end',function(){d3.select(this).remove()});
-		popNum.transition().delay(pauseDelay).duration(transTime).attr('y',wP.fifthsH[3][1]).each('end',function(){self.animateSplit(wP,screen,rect, scale);});
+		var t0 = screen.transition().delay(pauseDelay).duration(transTime);
+		t0.select('#popNum').attr('y',wP.fifthsH[3][1]);
+		var t1 = t0.transition();
+		t1.select('#pFTitle').style('opacity',1).each('end',function(){self.animateSplit(wP,screen,rect, scale);});
+
 	}
 	this.animateSplit = function(wP,screen,rect, scale){
 		//create containers for each column
 		self.pFCols = screen.selectAll('g').data(d3.keys(self.aFs)).enter().append('g').attr('class','pFCols');
-		self.pFCols = self.pFCols.append('text').attr('class','pgCount').attr('x',middle(rect[1],rect[0])).attr('y',wP.fifthsH[3][1]).attr('text-anchor','middle').attr('font-size',wP.fontSize)
+		var text = self.pFCols.append('text').attr('class','pgCount').attr('x',middle(rect[1],rect[0])).attr('y',wP.fifthsH[3][1]).attr('text-anchor','middle').attr('font-size',wP.fontSize)
 			.style('fill','grey').style('opacity',0)
 			.text(function(d){return self.aFs[d]['num']});
 		var cumulativeProp = 0;
+		var names = self.pFCols.append('text').attr('class','pgName').attr('y',wP.fifthsH[1][1]+wP.fontSize).attr('x',function(d){
+				cumulativeProp += self.aFs[d]['prob']; 
+				return scale(cumulativeProp - self.aFs[d]['prob']/2)}).attr('text-anchor','middle').attr('font-size',function(d){return fontS(wP.fontSize, scale(self.aFs[d]['prob']), d  )})
+			.style('fill','grey').style('opacity',0)
+			.text(function(d){return d});
+		cumulativeProp = 0;
 		var count = d3.keys(self.aFs).length;
-		self.pFCols.transition().delay(function(d,i){
+		text.transition().delay(function(d,i){
 			var retVal = i*(transTime+(pauseDelay/5));
 			return retVal;}).duration(transTime)
-			.attr('y',wP.fifthsH[1][1]).attr('x',function(d){
+			.attr('y',wP.fifthsH[1][1]).attr('x',function(d,i){
 				cumulativeProp += self.aFs[d]['prob']; 
 				return scale(cumulativeProp - self.aFs[d]['prob']/2)})
-			.style('opacity',1).style('fill','white').style('stroke','black')
+			.style('opacity',1).style('fill','white').style('stroke','black');
+		names.transition().delay(function(d,i){
+			var retVal = (i+1)*(transTime)+(i*(pauseDelay/5));
+			return retVal;}).duration(transTime)
+			.style('opacity',1).transition().duration(pauseDelay)
 			.each('end', function(d,i){count--;if(count==0){self.fadeGN(wP,screen,rect, scale)}});
 	}
 	this.fadeGN = function(wP,screen,rect, scale){
@@ -77,19 +109,25 @@ function eiko(controller, factors, iD){
 		self.pFCols = d3.selectAll('.pFCols');
 		var cumulativeProp = 0;
 		var count = d3.keys(self.aFs).length;
-		var text = self.pFCols.append('text').attr('class','pgName').attr('y',wP.fifthsH[1][1]+wP.fontSize).attr('x',function(d){
-				cumulativeProp += self.aFs[d]['prob']; 
-				return scale(cumulativeProp - self.aFs[d]['prob']/2)}).attr('text-anchor','middle').attr('font-size',wP.fontSize)
-			.style('fill','grey').style('opacity',0)
-			.text(function(d){return d});
-		popNum.transition().duration(transTime).style('opacity',0);
-		text.transition().duration(transTime).style('opacity',1).style('fill','white').style('stroke','black')
-			.each('end', function(d,i){
-				count--;
-				if(count == 0){
+		// var text = self.pFCols.append('text').attr('class','pgName').attr('y',wP.fifthsH[1][1]+wP.fontSize).attr('x',function(d){
+		// 		cumulativeProp += self.aFs[d]['prob']; 
+		// 		return scale(cumulativeProp - self.aFs[d]['prob']/2)}).attr('text-anchor','middle').attr('font-size',wP.fontSize)
+		// 	.style('fill','grey').style('opacity',0)
+		// 	.text(function(d){return d});
+		var text = d3.selectAll('.pgName')
+		popNum.transition().duration(transTime).style('opacity',0).each('end', function(d,i){
+				//count--;
+				//if(count == 0){
 					self.nameDrop(wP,screen,rect, scale);
-				}
-			})
+				//};
+			});
+		// text.transition().duration(transTime).style('opacity',1).style('fill','white').style('stroke','black')
+		// 	.each('end', function(d,i){
+		// 		count--;
+		// 		if(count == 0){
+		// 			self.nameDrop(wP,screen,rect, scale);
+		// 		}
+		// 	})
 
 	}
 	this.nameDrop = function(wP,screen,rect, scale){
@@ -188,16 +226,28 @@ function eiko(controller, factors, iD){
 			.transition().duration(pauseDelay)
 			.each('end',function(){
 				count--;
-				if(count==0){
+				oneFactor = false;
+					if(factor2 == '-'){
+							oneFactor = true;
+						}
+				if(count==0 && !oneFactor){
 
 					//self.splitCol(d3.select('.pFCols'),0, wP,screen,rect, scale)
-					self.secondSplit(wP,screen,rect, scale);
+					self.secondaryTitle(wP,screen,rect, scale);
 				}
 			});
 
 	}
+	this.secondaryTitle = function(wP,screen,rect, scale){
+		var sfTitle = screen.append('text').attr('id','sFTitle').attr('y',middle(rect[3],rect[2])).attr('x',self.mainWp.fifthsW[4][1]).attr('text-anchor','end').attr('font-size',fontS(wP.fontSize*2,self.mainWp.oneFifthW*2,factor2))
+		.style('fill','black').style('opacity',0)
+		.text(factor2);
+		sfTitle.transition().duration(transTime).style('opacity',1).each('end',function(){self.nameSecondary(wP,screen,rect, scale);});
+
+	}
 	this.secondSplit = function(wP,screen,rect, scale){
 		var count = self.pFCols[0].length;
+		self.pFCols[0].reverse();
 		self.pFCols.each(function(d,i){
 			count--;
 			var isLast = (count==0);
@@ -205,14 +255,24 @@ function eiko(controller, factors, iD){
 			setTimeout(function(){self.splitCol(thisCol,i,wP,screen,rect, scale, isLast)},i*(transTime+pauseDelay));
 		})
 	}
-	this.nameSecondary = function(wP,screen,rect, scale, yValues){
-		var secondaryCounts = self.aFs[d3.keys(self.aFs)[0]]['secondary'][0];
+	this.nameSecondary = function(wP,screen,rect, scale){
+		var secondaryCounts = self.aFs[d3.keys(self.aFs)[d3.keys(self.aFs).length-1]]['secondary'][1];
 		var secNames = d3.keys(secondaryCounts);
-		for(var i = 0; i<yValues.length;i++){
-			screen.append('text').attr('x',self.mainWp.fifthsW[4][0]).attr('y',yValues[i]).attr('text-anchor','left').attr('font-size',wP.fontSize)
-			.style('fill','grey').style('opacity',1)
+		var prevY = 0;
+		for(var i = 0; i<secNames.length-1;i++){
+			var yValue = self.yScale(middle(prevY, prevY+secondaryCounts[secNames[i]]));
+			prevY += secondaryCounts[secNames[i]];
+			screen.append('text').attr('class','sfNames').attr('x',self.mainWp.fifthsW[4][0]).attr('y',yValue).attr('text-anchor','left').attr('font-size',Math.min(wP.fontSize, (self.mainWp.oneFifthW/2)/secNames[i].length))
+			.style('fill','grey').style('opacity',0)
 			.text(secNames[i]);
 		}
+		var count = secNames.length-1;
+		d3.selectAll('.sfNames').transition().duration(transTime).style('opacity',1).transition().duration(pauseDelay).each('end', function(){
+			count--;
+			if(count==0){
+				self.secondSplit(wP,screen,rect, scale);
+			}
+		});
 		
 	}
 	this.splitCol = function(col,colI, wP,screen,rect, scale, isLast){
@@ -266,7 +326,7 @@ function eiko(controller, factors, iD){
 		col.select('.pgCount').transition().duration(transTime).style('opacity',0).each('end',function(){
 			d3.select(this).remove()
 			if(isLast){
-				self.nameSecondary(wP,screen,rect, scale, yValues);
+				//self.nameSecondary(wP,screen,rect, scale, yValues);
 			}});
 	}
 	this.calcPrimaryFactor = function(factor, iL){
@@ -319,8 +379,9 @@ function eiko(controller, factors, iD){
 			}
 		}
 	}
-	this.destroy = function(){
-		mainScreen.remove();
+	this.destroy = function(callback){
+		d3.select("#eikosogram").selectAll("*").transition().duration(0).attr('x',0).each('end', function(){d3.select(this).remove();});
+		callback();
 	}
 	this.init();
 }
@@ -347,4 +408,7 @@ function randRGB(){
 }
 function middle(A,B){
 	return (A+B)/2;
+}
+function fontS(A, B, text){
+	return Math.min(A, (B)/(text.length*2.5));
 }

@@ -27,12 +27,14 @@ function probability(){
 		return this.view.getFactors();
 	}
 	this.primeSelected = function(){
-		this.destroyScreen();
-		self.createDisplay();
+		this.destroyScreen(self.createDisplay);
 	}
-	this.destroyScreen = function(){
-		this.dataDisplay.destroy();
-		this.dataDisplay = null;
+	this.destroyScreen = function(callback){
+		this.dataDisplay.destroy(function(){
+			this.dataDisplay = null;
+			callback();
+		});
+
 	}
 }
 var mainControl = null;
