@@ -27,6 +27,19 @@ function probability(){
 	this.getFactors = function(){
 		return this.view.getFactors();
 	}
+	this.getShowData = function(){
+		var val = this.view.getShowData();
+		this.showDataChanged(val);
+	}
+	this.showDataChanged = function(value){
+		if(value == 'None') this.dataDisplay.hideCounts();
+		if(value == 'Counts') this.dataDisplay.showCounts();
+		if(value == 'Proportions') this.dataDisplay.showProportionTotal();
+		if(value == 'Both') this.dataDisplay.showBoth();
+	}
+	this.getPropType = function(){
+		return this.view.getPropType();
+	}
 	this.primeSelected = function(){
 		var newFactors = this.getFactors();
 		if(oldFactors[0] == newFactors[0] && oldFactors[1] == -1 && this.dataDisplay.F2Ok){

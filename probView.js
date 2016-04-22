@@ -39,11 +39,46 @@ function probView(controller){
 							<span>Proportions</span>
 							</label>
 						</div>
+					<div class="checkbox">
+						<label>
+							<input id="colProp" type="checkbox" value ="colProp" class = "propType">
+							<span>Column proportions</span>
+							<input id="totProp" type="checkbox" value ="totProp"class = "propType">
+							<span>Total proportions</span>
+						</label>
+					</div>
+						<div class = 'radio'>
+							<label>
+							<input type='radio' name='showData' value='Both'>
+							<span>Both</span>
+							</label>
+						</div>
+
 						</div>
 					</div>
 				`);
+		$("input[name='showData']").click(function(){
+			controller.showDataChanged(this.value);
+		});
+		$('input:checkbox.propType').click(function(){
+			controller.showDataChanged($("input[name='showData']:checked").val());
+		});
+	}
+	this.getShowData = function(){
+		return $("input[name='showData']:checked").val();
+	}
+	this.getPropType = function(){
+		var retVal = [];
+		$('input:checkbox.propType').each(function(){
+			var ret = (this.checked ? $(this).val() : "");
+			if(ret != ""){
+				retVal.push(ret);
+			}
+		})
+		return retVal;
 	}
 	this.suIndependanceUI = function(){
+		return;
 		oC = $('#independenceUI');
 		oC.html(`<div class="form-group">
 					<div class="checkbox">
