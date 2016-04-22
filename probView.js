@@ -93,6 +93,7 @@ function probView(controller){
 	}
 	this.suFactorSelectors = function(headings){
 		oC = $("#factorSelectors");
+		oC.html("");
 		for(var j =1;j<=2;j++){
 			container = $("<div>").attr('class', 'form-group').appendTo(oC);
 			container.append($("<label>").text("Factor "+j));
@@ -117,6 +118,7 @@ function probView(controller){
 	}
 	this.suSwapFactorsUI = function(){
 		oC = $("#swapFactorsUI");
+		oC.html("");
 		var button = $("<button>").attr('id','swapFactors').attr('type','button').attr('class','btn btn-default action-button').text("Swap factors").appendTo(oC);
 		button.click(function(){
 			var f1 = $('#fac1').val();

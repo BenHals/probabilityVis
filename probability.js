@@ -22,7 +22,7 @@ function probability(){
 		self.dataDisplay = new eiko(self,[self.model.getHeading(factors[0]),self.model.getHeading(factors[1])], self.model.getData());
 	}
 	this.finToolSU = function(){
-		self.createDisplay();
+		self.destroyScreen(self.createDisplay);
 	}
 	this.getFactors = function(){
 		return this.view.getFactors();
@@ -51,10 +51,14 @@ function probability(){
 		oldFactors=newFactors;
 	}
 	this.destroyScreen = function(callback){
-		this.dataDisplay.destroy(function(){
-			this.dataDisplay = null;
-			callback();
-		});
+    if(self.dataDisplay != null){
+  		this.dataDisplay.destroy(function(){
+  			this.dataDisplay = null;
+  			callback();
+  		});
+    }else{
+      callback();
+    }
 
 	}
 	this.continue = function(){
