@@ -31,6 +31,7 @@ function eiko(controller, factors, iD){
 	this.init = function(){
 		this.aFs = this.calcSecondaryFactor(factor1,factor2, iD);
 		pColors = randomColors(d3.keys(this.aFs[d3.keys(this.aFs)[0]]['secondary'][0]).length);
+		pColsScale = d3.scale.category10();
 		if(!self.noFactors){
 			this.drawPrimary(mainScreen, eKRect);
 		}
@@ -59,8 +60,8 @@ function eiko(controller, factors, iD){
 	}
 	this.drawPop = function(wP,screen,rect, scale){
 		//Base Rectangle
-		screen.append('rect').attr('x',rect[0]).attr('y',rect[2]).attr('width',rect[1]-rect[0]).attr('height',rect[3]-rect[2]).style('fill', 'grey').style('stroke','black').style('stroke-width',10).style('stroke-alignment','outer').style('fill-opacity',0.2);
-		screen.append('rect').attr('x',rect[0]).attr('y',rect[2]).attr('width',rect[1]-rect[0]).attr('height',rect[3]-rect[2]).style('fill', 'lightgrey').style('fill-opacity',1);
+		screen.append('rect').attr('class','background').attr('x',rect[0]).attr('y',rect[2]).attr('width',rect[1]-rect[0]).attr('height',rect[3]-rect[2]).style('fill', 'grey').style('stroke','black').style('stroke-width',10).style('stroke-alignment','outer').style('fill-opacity',0.2);
+		screen.append('rect').attr('class','background').attr('x',rect[0]).attr('y',rect[2]).attr('width',rect[1]-rect[0]).attr('height',rect[3]-rect[2]).style('fill', 'lightgrey').style('fill-opacity',1);
 
 		//Population Number
 		screen.append('text').attr('id','popNum').attr('x',middle(rect[1],rect[0])).attr('y',middle(rect[3],rect[2])).attr('text-anchor','middle').attr('font-size',wP.fontSize*2)
@@ -188,7 +189,9 @@ function eiko(controller, factors, iD){
 			}else{
 				return 'innerBound';
 			}
-		}).style('stroke-width', 3).style('stroke','black').style('opacity',0);
+		}).style('stroke-width', 3).style('stroke','black').style('opacity',0).attr('width', function(){
+			return parseInt(d3.select(this).attr('x2')) - parseInt(d3.select(this).attr('x1'));
+		});
 		var cProbX1 = 0;
 		var cProbX2 = 0;
 		var cProbIsOuter = 0;
@@ -212,7 +215,9 @@ function eiko(controller, factors, iD){
 			}else{
 				return 'innerBound';
 			}
-		}).style('stroke-width', 3).style('stroke','black').style('opacity',0);
+		}).style('stroke-width', 3).style('stroke','black').style('opacity',0).attr('width', function(){
+			return parseInt(d3.select(this).attr('x2')) - parseInt(d3.select(this).attr('x1'));
+		});
 		var cProbX1 = 0;
 		var cProbX2 = 0;
 		var cProbIsOuter = 0;
@@ -226,7 +231,9 @@ function eiko(controller, factors, iD){
 			var retVal = cProbX2;
 			return scale(retVal);
 		}).attr('y1',wP.fifthsH[0][0]).attr('y2',wP.fifthsH[0][0]).attr('class','outerBound')
-		.style('width', 3).style('stroke','black').style('opacity',0);
+		.style('width', 3).style('stroke','black').style('opacity',0).attr('width', function(){
+			return parseInt(d3.select(this).attr('x2')) - parseInt(d3.select(this).attr('x1'));
+		});
 		var cProbX1 = 0;
 		var cProbX2 = 0;
 		var cProbIsOuter = 0;
@@ -240,7 +247,9 @@ function eiko(controller, factors, iD){
 			var retVal = cProbX2;
 			return scale(retVal);
 		}).attr('y1',wP.fifthsH[4][1]).attr('y2',wP.fifthsH[4][1]).attr('class','outerBound')
-		.style('width', 3).style('stroke','black').style('opacity',0);
+		.style('width', 3).style('stroke','black').style('opacity',0).attr('width', function(){
+			return parseInt(d3.select(this).attr('x2')) - parseInt(d3.select(this).attr('x1'));
+		});
 
 		var innerCols = d3.selectAll('.innerBound')
 		var count = innerCols.length;
@@ -290,7 +299,8 @@ function eiko(controller, factors, iD){
 			.style('fill','black').style('opacity',0)
 			.text(secNames[i]);
 			screen.append('rect').attr('class','sfColor').attr('x',self.mainWp.fifthsW[4][0]-10).attr('width',10).attr('y',yValue-12.5).attr('height',10)
-				.style('fill', d3.rgb(pColors[i][0], pColors[i][1],pColors[i][2])).style('opacity',0);
+				//.style('fill', d3.rgb(pColors[i][0], pColors[i][1],pColors[i][2])).style('opacity',0);
+				.style('fill', pColsScale(i));
 		}
 		var count = secNames.length-1;
 		d3.selectAll('.sfColor').transition().duration(transTime).style('opacity', 1);
@@ -325,11 +335,13 @@ function eiko(controller, factors, iD){
 				return self.yScale(retValue);
 			}).attr('width',col.select('#bLine').attr('x2') - col.select('#bLine').attr('x1'))
 			.style('fill', function(){
-				var retVal = d3.rgb(pColors[j][0], pColors[j][1],pColors[j][2]);
+				var retVal =  pColsScale(j);
 				return retVal;}).style('opacity',0);
 			col.append('line').attr('class','sColDivider').attr('x1',col.select('#bLine').attr('x1')).attr('x2',col.select('#bLine').attr('x1'))
 				.attr('y1', self.yScale(divPositions[j])).attr('y2',self.yScale(divPositions[j]))
-				.style('stroke', 'black').style('stroke-width',2).style('opacity',1);
+				.style('stroke', 'black').style('stroke-width',2).style('opacity',1).attr('width', function(){
+			return parseInt(d3.select(this).attr('x2')) - parseInt(d3.select(this).attr('x1'));
+		});
 			col.append('text').attr('id',colI+'-'+j+'text').attr('data-name',d3.keys(secondaryCounts)[j]).attr('class', 'secondaryCounts').attr('y',wP.fifthsH[1][1]).attr('x',col.select('.pgCount').attr('x')).attr('text-anchor','middle').attr('font-size',wP.fontSize)
 			.style('fill','black').style('stroke','black').style('opacity',1).style('stroke-width',0)
 			.text(secondaryCounts[d3.keys(secondaryCounts)[j]]);
@@ -361,7 +373,36 @@ function eiko(controller, factors, iD){
 			if(isLast){
 				//self.nameSecondary(wP,screen,rect, scale, yValues);
 				controller.getShowData();
+				
+				
 			}});
+	}
+
+	this.shiftCols = function(){
+		return;
+		var newScale = d3.scale.linear().domain([eKRect[0], eKRect[1]]).range([eKRect[0] - 50, eKRect[1] + 50]);
+		self.pFCols.selectAll('g').each(function(){
+			var gr = d3.select(this);
+			var newX = newScale(parseInt(gr.select('rect').attr('x')));
+			var difference = parseInt(gr.select('rect').attr('x')) - newX;
+			gr.selectAll('*').attr('transform','translate('+difference+',0)');
+		})
+		d3.selectAll('.background').style('opacity',0);
+		d3.selectAll('.outerBound').style('opacity',1);
+		d3.selectAll('.innerBound').style('opacity',1);
+	}
+	this.unshiftCols = function(){
+		return;
+		var newScale = d3.scale.linear().domain([eKRect[0], eKRect[1]]).range([eKRect[0] - 50, eKRect[1] + 50]);
+		self.pFCols.selectAll('g').each(function(){
+			var gr = d3.select(this);
+			var newX = newScale.invert(parseInt(gr.select('rect').attr('x')));
+			var difference = parseInt(gr.select('rect').attr('x')) - newX;
+			gr.selectAll('*').attr('transform','translate('+difference+',0)');
+		})
+		d3.selectAll('.background').style('opacity',1);
+		d3.selectAll('.outerBound').style('opacity',0);
+		d3.selectAll('.innerBound').style('opacity',1);
 	}
 	this.calcPrimaryFactor = function(factor, iL){
 		fTotals = new Object();
@@ -452,6 +493,7 @@ function eiko(controller, factors, iD){
 		d3.selectAll('.secondaryCounts').style('opacity',0);
 	}
 	this.showCounts = function(){
+		self.unshiftCols();
 		d3.selectAll('.pgCount').text(function(d,i){
 			return self.aFs[d]['num'];
 		}).style('opacity',1);
@@ -469,6 +511,7 @@ function eiko(controller, factors, iD){
 		}).style('opacity',1);
 	}
 	this.showBoth = function(){
+		self.unshiftCols();
 		d3.selectAll('.pgCount').text(function(d,i){
 			return self.aFs[d]['num'] + ' ('+(Math.round(self.aFs[d]['prob']*100)/100)+')';
 		}).style('opacity',1);
@@ -482,9 +525,11 @@ function eiko(controller, factors, iD){
 		retString = "";
 		for (type in propTypes){
 			if(propTypes[type]=='colProp'){
+				self.shiftCols();
 				retString += Math.round(self.aFs[d]['secondary'][1][d3.keys(self.aFs[d]['secondary'][1])[i%(d3.keys(self.aFs[d]['secondary'][1]).length-1)]] * 100)/100;
 			}
 			else if (propTypes[type] == 'totProp'){
+				self.unshiftCols();
 				retString += Math.round(self.aFs[d]['secondary'][0][d3.keys(self.aFs[d]['secondary'][0])[i%(d3.keys(self.aFs[d]['secondary'][0]).length-1)]]/iD.length * 100)/100;
 			}
 			retString += ' , ';
