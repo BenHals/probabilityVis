@@ -1,7 +1,7 @@
-function eiko(controller, factors, iD){
+function eiko(controller, factors, iD, speed){
 	this.paused = false;
-	pauseDelay = 500;
-	transTime = 1000;
+	pauseDelay = 500*(1/speed);
+	transTime = 1000*(1/speed);
 	
 	var self = this;
 	factor1 = factors[0][0];
@@ -40,6 +40,10 @@ function eiko(controller, factors, iD){
 		if(!self.noFactors){
 			this.drawPrimary(mainScreen, eKRect);
 		}
+	}
+	this.speedChanged = function(ns){
+		pauseDelay = 500*(1/ns);
+		transTime = 1000*(1/ns);
 	}
 	this.drawPrimary = function(screen,rect){
 		primeWP = new WindowPos(rect);

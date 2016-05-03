@@ -14,12 +14,15 @@ function probability(){
 	this.impButPressed = function(e){
 		this.model.getFile(e);
 	}
+	this.speedChanged = function(nS){
+		this.dataDisplay.speedChanged(nS);
+	}
 	this.finishedModelSU = function(){
 		this.view.suManipTools(this.model.getCategorical(), self.finToolSU);
 	}
 	this.createDisplay = function(){
 		factors = self.getFactors();
-		self.dataDisplay = new eiko(self,[self.model.getHeading(factors[0]),self.model.getHeading(factors[1])], self.model.getData());
+		self.dataDisplay = new eiko(self,[self.model.getHeading(factors[0]),self.model.getHeading(factors[1])], self.model.getData(), self.view.getSpeed());
 	}
 	this.finToolSU = function(){
 		self.destroyScreen(self.createDisplay);

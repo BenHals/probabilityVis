@@ -13,6 +13,7 @@ function probView(controller){
 		this.suIndependanceUI();
 		this.suFactorSelectors(headings);
 		this.suSwapFactorsUI();
+		this.setUpControls();
 		callback();
 	}
 	this.suDataUI = function(){
@@ -137,5 +138,20 @@ function probView(controller){
 	}
 	this.cantContinue = function(){
 		d3.select('#continue').classed('btn-success',false);
+	}
+	this.setUpControls = function(){
+		oC = $('#countsGrid');
+		oC.html(`<label for='speedControl' id='sClabel'>Visualisation Speed = 1</label>
+			<input id='speedControl' name='speedControl' type='range' value='1' min='0.1' max = '5' step='0.1'>
+				`);
+		var range = $('#speedControl');
+		range.on("change mousemove", function(){
+			$('#sClabel').text('Visualisation Speed = ' + range.val());
+			controller.speedChanged(range.val());
+		})
+
+	}
+	this.getSpeed = function(){
+		return $('#speedControl').val();
 	}
 }
