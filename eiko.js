@@ -29,7 +29,12 @@ function eiko(controller, factors, iD){
 	this.mainWp = wP;
 	eKRect = [wP.fifthsW[1][0]/2,wP.fifthsW[3][1]-wP.fifthsW[1][0]/2,10,(wP.fifthsW[3][1]-wP.fifthsW[1][0])+10];
 	this.init = function(){
-		this.aFs = this.calcSecondaryFactor(factor1,factor2, iD);
+		d3.select("#eikosogram").attr('height',$(window).height());
+		d3.select(".container-fluid").style('height','100%');
+		d3.select(".row").style('height','100%');
+		calRet =this.calcSecondaryFactor(factor1,factor2, iD);
+		this.aFs = calRet[0];
+		this.secValues = calRet[1];
 		pColors = randomColors(d3.keys(this.aFs[d3.keys(this.aFs)[0]]['secondary'][0]).length);
 		pColsScale = d3.scale.category10();
 		if(!self.noFactors){
@@ -290,17 +295,35 @@ function eiko(controller, factors, iD){
 	}
 	this.nameSecondary = function(wP,screen,rect, scale){
 		var secondaryCounts = self.aFs[d3.keys(self.aFs)[d3.keys(self.aFs).length-1]]['secondary'][1];
+
 		var secNames = d3.keys(secondaryCounts);
+		var nameSet = new Set(self.secValues);
+		secNames.forEach(function(value){
+			nameSet.delete(value);
+		});
+
 		var prevY = 0;
+		var yValue = 0;
 		for(var i = 0; i<secNames.length-1;i++){
-			var yValue = self.yScale(middle(prevY, prevY+secondaryCounts[secNames[i]]));
+			yValue = self.yScale(middle(prevY, prevY+secondaryCounts[secNames[i]]));
 			prevY += secondaryCounts[secNames[i]];
 			screen.append('text').attr('class','sfNames').attr('x',self.mainWp.fifthsW[4][0]+10).attr('y',yValue).attr('text-anchor','left').attr('font-size',wP.fontSize)
 			.style('fill','black').style('opacity',0)
 			.text(secNames[i]);
-			screen.append('rect').attr('class','sfColor').attr('x',self.mainWp.fifthsW[4][0]-10).attr('width',10).attr('y',yValue-12.5).attr('height',10)
+			screen.append('rect').attr('class','sfColor').attr('x',self.mainWp.fifthsW[4][0]-20).attr('width',20).attr('y',yValue-25).attr('height',20)
 				//.style('fill', d3.rgb(pColors[i][0], pColors[i][1],pColors[i][2])).style('opacity',0);
 				.style('fill', pColsScale(i));
+		}
+		var colCount = secNames.length-1;
+		for(let item of nameSet){
+			yValue += wP.fontSize*2;
+			screen.append('text').attr('class','sfNames').attr('x',self.mainWp.fifthsW[4][0]+10).attr('y',yValue).attr('text-anchor','left').attr('font-size',wP.fontSize)
+			.style('fill','black').style('opacity',0)
+			.text(item);
+			screen.append('rect').attr('class','sfColor').attr('x',self.mainWp.fifthsW[4][0]-20).attr('width',20).attr('y',yValue-25).attr('height',20)
+				//.style('fill', d3.rgb(pColors[i][0], pColors[i][1],pColors[i][2])).style('opacity',0);
+				.style('fill', pColsScale(colCount));
+			colCount++;
 		}
 		var count = secNames.length-1;
 		d3.selectAll('.sfColor').transition().duration(transTime).style('opacity', 1);
@@ -427,6 +450,7 @@ function eiko(controller, factors, iD){
 	this.calcSecondaryFactor = function(pF,sF, iL){
 		AllProbs = new Object();
 		primeSplit = new Object();
+		secValues = new Set();
 		for (index in iD){
 			var o = iD[index];
 			val = o[pF];
@@ -442,8 +466,16 @@ function eiko(controller, factors, iD){
 			AllProbs[p]['num'] = primeSplit[p].length;
 			AllProbs[p]['prob'] = AllProbs[p]['num']/iL.length;
 			AllProbs[p]['secondary'] = this.calcPrimaryFactor(sF, primeSplit[p]);
+			d3.keys(AllProbs[p]['secondary']).forEach(function(n){
+				d3.keys(AllProbs[p]['secondary'][n]).forEach(function(name){
+					if(name != 'total'){
+						secValues.add(name);
+					}
+				});
+			});
+			
 		}
-		return AllProbs;
+		return [AllProbs,secValues];
 	}
 	this.randSquare = function(screen, wP){
 		for(var r = 0; r<5;r++){
