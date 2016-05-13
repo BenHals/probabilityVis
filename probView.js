@@ -1,5 +1,32 @@
 function probView(controller){
 	this.init = function(){
+		$(document).keypress(function(e){
+			var range = $('#speedControl');
+			var size = $('#fontControl');
+			if(e.which == 97){
+				range.val(range.val()-0.1);
+				$('#sClabel').text('Visualisation Speed = ' + range.val());
+				controller.speedChanged(range.val());
+			}
+			if(e.which == 100){
+				var newVar = parseFloat(range.val())+0.1;
+				range.val(newVar);
+				$('#sClabel').text('Visualisation Speed = ' + range.val());
+				controller.speedChanged(range.val());
+			}
+			if(e.which == 119){
+				var newVar = parseFloat(size.val())+0.1;
+				size.val(newVar);
+				$('#fSLabel').text('Font Size = ' + size.val());
+				controller.fontChanged(size.val());
+			}
+			if(e.which == 115){
+				var newVar = parseFloat(size.val())-0.1;
+				size.val(newVar);
+				$('#fSLabel').text('Font Size = ' + size.val());
+				controller.fontChanged(size.val());
+			}
+		});
 		var IB = document.getElementById("file");
 		IB.onchange = function(e){
 			controller.impButPressed(e);
@@ -42,7 +69,7 @@ function probView(controller){
 						</div>
 					<div class="checkbox">
 						<label>
-							<input id="colProp" type="radio" value ="colProp" name = "propType">
+							<input id="colProp" type="radio" value ="colProp" name = "propType" checked="checked">
 							<span>Column proportions</span>
 							<input id="totProp" type="radio" value ="totProp"name = "propType">
 							<span>Total proportions</span>
@@ -143,15 +170,26 @@ function probView(controller){
 		oC = $('#countsGrid');
 		oC.html(`<label for='speedControl' id='sClabel'>Visualisation Speed = 1</label>
 			<input id='speedControl' name='speedControl' type='range' value='1' min='0.1' max = '5' step='0.1'>
-				`);
+				<label for='fontControl' id ='fSLabel'>Font Size = 1</label>
+				<input id='fontControl' name='fontControl' type='range' value='1' min='0.1' max = '2' step='0.1'>`);
 		var range = $('#speedControl');
 		range.on("change mousemove", function(){
 			$('#sClabel').text('Visualisation Speed = ' + range.val());
 			controller.speedChanged(range.val());
-		})
+		});
+
+
+		var fRange = $('#fontControl');
+		fRange.on("change mousemove", function(){
+			$('#fSLabel').text('Font Size = ' + fRange.val());
+			controller.fontChanged(fRange.val());
+		});
 
 	}
 	this.getSpeed = function(){
 		return $('#speedControl').val();
+	}
+	this.getFont = function(){
+		return $('#fontControl').val();
 	}
 }

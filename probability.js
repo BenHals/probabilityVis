@@ -17,6 +17,9 @@ function probability(){
 	this.speedChanged = function(nS){
 		this.dataDisplay.speedChanged(nS);
 	}
+	this.fontChanged = function(nS){
+		this.dataDisplay.fontChanged(nS);
+	}
 	this.finishedModelSU = function(){
 		this.view.suManipTools(this.model.getCategorical(), self.finToolSU);
 	}

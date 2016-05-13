@@ -2,7 +2,7 @@ function eiko(controller, factors, iD, speed){
 	this.paused = false;
 	pauseDelay = 500*(1/speed);
 	transTime = 1000*(1/speed);
-	
+	fontMulti = controller.view.getFont();
 	var self = this;
 	factor1 = factors[0][0];
 	factor2 = factors[1][0];
@@ -45,6 +45,22 @@ function eiko(controller, factors, iD, speed){
 		pauseDelay = 500*(1/ns);
 		transTime = 1000*(1/ns);
 	}
+	this.fontChanged = function(nS){
+		oldSize = fontMulti;
+		fontMulti = nS;
+		diff = fontMulti/oldSize;
+		if(diff != 1){
+			d3.selectAll('text').attr('font-size', function(){return d3.select(this).attr('font-size')*diff})
+			.attr('y', function(){
+					if(oldSize > nS){
+						return parseInt(d3.select(this).attr('y'))-1;
+					}
+					else{
+						return parseInt(d3.select(this).attr('y'))+1;
+					}
+				});
+		}
+	}
 	this.drawPrimary = function(screen,rect){
 		primeWP = new WindowPos(rect);
 		var propToScreen = d3.scale.linear().domain([0,1]).range([rect[0],rect[1]]);
@@ -73,11 +89,11 @@ function eiko(controller, factors, iD, speed){
 		screen.append('rect').attr('class','background').attr('x',rect[0]).attr('y',rect[2]).attr('width',rect[1]-rect[0]).attr('height',rect[3]-rect[2]).style('fill', 'lightgrey').style('fill-opacity',1);
 
 		//Population Number
-		screen.append('text').attr('id','popNum').attr('x',middle(rect[1],rect[0])).attr('y',middle(rect[3],rect[2])).attr('text-anchor','middle').attr('font-size',wP.fontSize*2)
+		screen.append('text').attr('id','popNum').attr('x',middle(rect[1],rect[0])).attr('y',middle(rect[3],rect[2])).attr('text-anchor','middle').attr('font-size',wP.fontSize*2*fontMulti)
 				.style('fill','black').style('opacity',0.8)
 				.text(iD.length);
 		//Individuals
-		screen.append('text').attr('id','individuals').attr('x',middle(rect[1],rect[0])).attr('y',middle(rect[3],rect[2])+wP.fontSize*2).attr('text-anchor','middle').attr('font-size',wP.fontSize*2)
+		screen.append('text').attr('id','individuals').attr('x',middle(rect[1],rect[0])).attr('y',middle(rect[3],rect[2])+wP.fontSize*fontMulti*2).attr('text-anchor','middle').attr('font-size',wP.fontSize*fontMulti*2)
 				.style('fill','black').style('opacity',0.8)
 				.text('Individuals');
 
@@ -86,12 +102,12 @@ function eiko(controller, factors, iD, speed){
 	this.shiftDown = function(wP,screen,rect, scale){
 		var popNum = d3.select('#popNum');
 		var individuals = d3.select('#individuals');
-		var pfTitle = screen.append('text').attr('id','pFTitle').attr('x',middle(rect[1],rect[0])).attr('y',wP.fifthsH[4][1]+wP.fontSize*2).attr('text-anchor','middle').attr('font-size',wP.fontSize*2)
+		var pfTitle = screen.append('text').attr('id','pFTitle').attr('x',middle(rect[1],rect[0])).attr('y',wP.fifthsH[4][1]+wP.fontSize*fontMulti*2).attr('text-anchor','middle').attr('font-size',wP.fontSize*fontMulti*2)
 				.style('fill','black').style('opacity',0)
 				.text(factor1);
 		var t0 = screen.transition().delay(pauseDelay).duration(transTime);
 		t0.select('#popNum').attr('y',wP.fifthsH[3][1]);
-		t0.select('#individuals').attr('y',wP.fifthsH[3][1]+wP.fontSize*2).each('end',function(){
+		t0.select('#individuals').attr('y',wP.fifthsH[3][1]+wP.fontSize*fontMulti*2).each('end',function(){
 			//self.animateSplit(wP,screen,rect, scale);
 			self.stopPoint(wP,screen,rect, scale, self.fadeName);
 		});;
@@ -108,13 +124,13 @@ function eiko(controller, factors, iD, speed){
 	this.animateSplit = function(wP,screen,rect, scale){
 		//create containers for each column
 		self.pFCols = screen.selectAll('g').data(d3.keys(self.aFs)).enter().append('g').attr('class','pFCols');
-		var text = self.pFCols.append('text').attr('class','pgCount').attr('x',middle(rect[1],rect[0])).attr('y',wP.fifthsH[3][1]).attr('text-anchor','middle').attr('font-size',wP.fontSize)
+		var text = self.pFCols.append('text').attr('class','pgCount').attr('x',middle(rect[1],rect[0])).attr('y',wP.fifthsH[3][1]).attr('text-anchor','middle').attr('font-size',wP.fontSize*fontMulti)
 			.style('fill','black').style('opacity',0)
 			.text(function(d){return self.aFs[d]['num']});
 		var cumulativeProp = 0;
-		var names = self.pFCols.append('text').attr('class','pgName').attr('y',wP.fifthsH[1][1]+wP.fontSize).attr('x',function(d){
+		var names = self.pFCols.append('text').attr('class','pgName').attr('y',wP.fifthsH[1][1]+wP.fontSize*fontMulti).attr('x',function(d){
 				cumulativeProp += self.aFs[d]['prob']; 
-				return scale(cumulativeProp - self.aFs[d]['prob']/2)}).attr('text-anchor','middle').attr('font-size',function(d){return wP.fontSize})
+				return scale(cumulativeProp - self.aFs[d]['prob']/2)}).attr('text-anchor','middle').attr('font-size',function(d){return wP.fontSize*fontMulti})
 			.style('fill','black').style('opacity',0)
 			.text(function(d){return d});
 		cumulativeProp = 0;
@@ -164,9 +180,9 @@ function eiko(controller, factors, iD, speed){
 	}
 	this.nameDrop = function(wP,screen,rect, scale){
 		var count = d3.keys(self.aFs).length;
-		d3.select('#pFTitle').transition().duration(transTime).attr('y',wP.fifthsH[4][1] + wP.fontSize*3)
+		d3.select('#pFTitle').transition().duration(transTime).attr('y',wP.fifthsH[4][1] + wP.fontSize*fontMulti*3)
 		d3.selectAll('.pgName').transition().duration(transTime)
-			.attr('y', function(d,i){return wP.fifthsH[4][1]+wP.fontSize*1 + 5*((i%2))})
+			.attr('y', function(d,i){return wP.fifthsH[4][1]+wP.fontSize*fontMulti*1 + 5*((i%2))})
 			.each('end',function(){
 				count--;
 				if(count==0){
@@ -281,7 +297,7 @@ function eiko(controller, factors, iD, speed){
 
 	}
 	this.secondaryTitle = function(wP,screen,rect, scale){
-		var sfTitle = screen.append('text').attr('id','sFTitle').attr('y',middle(rect[3],rect[2])).attr('x',self.mainWp.fifthsW[4][1]).attr('text-anchor','end').attr('font-size',wP.fontSize)
+		var sfTitle = screen.append('text').attr('id','sFTitle').attr('y',middle(rect[3],rect[2])).attr('x',self.mainWp.fifthsW[4][1]).attr('text-anchor','end').attr('font-size',wP.fontSize*fontMulti)
 		.style('fill','black').style('opacity',0)
 		.text(factor2);
 		sfTitle.transition().duration(transTime).style('opacity',1).each('end',function(){self.nameSecondary(wP,screen,rect, scale);});
@@ -312,18 +328,18 @@ function eiko(controller, factors, iD, speed){
 		for(var i = 0; i<secNames.length-1;i++){
 			yValue = self.yScale(middle(prevY, prevY+secondaryCounts[secNames[i]]));
 			prevY += secondaryCounts[secNames[i]];
-			screen.append('text').attr('class','sfNames').attr('x',self.mainWp.fifthsW[4][0]+10).attr('y',yValue).attr('text-anchor','left').attr('font-size',wP.fontSize)
+			screen.append('text').attr('class','sfNames').attr('x',self.mainWp.fifthsW[4][0]+10).attr('y',yValue).attr('text-anchor','left').attr('font-size',wP.fontSize*fontMulti)
 			.style('fill','black').style('opacity',0)
 			.text(secNames[i]);
-			screen.append('rect').attr('class','sfColor').attr('x',self.mainWp.fifthsW[4][0]-20).attr('width',20).attr('y',yValue-25).attr('height',20)
+			screen.append('rect').attr('class','sfColor').attr('x',self.mainWp.fifthsW[4][0]-20).attr('width',20).attr('y',yValue-15).attr('height',20)
 				//.style('fill', d3.rgb(pColors[i][0], pColors[i][1],pColors[i][2])).style('opacity',0);
 				.style('fill', pColsScale(i));
 			self.colorMap[secNames[i]] = pColsScale(i);
 		}
 		var colCount = secNames.length-1;
 		for(let item of nameSet){
-			yValue += wP.fontSize*2;
-			screen.append('text').attr('class','sfNames').attr('x',self.mainWp.fifthsW[4][0]+10).attr('y',yValue).attr('text-anchor','left').attr('font-size',wP.fontSize)
+			yValue += wP.fontSize*fontMulti*2;
+			screen.append('text').attr('class','sfNames').attr('x',self.mainWp.fifthsW[4][0]+10).attr('y',yValue).attr('text-anchor','left').attr('font-size',wP.fontSize*fontMulti)
 			.style('fill','black').style('opacity',0)
 			.text(item);
 			screen.append('rect').attr('class','sfColor').attr('x',self.mainWp.fifthsW[4][0]-20).attr('width',20).attr('y',yValue-25).attr('height',20)
@@ -376,7 +392,7 @@ function eiko(controller, factors, iD, speed){
 				.style('stroke', 'black').style('stroke-width',2).style('opacity',1).attr('width', function(){
 			return parseInt(d3.select(this).attr('x2')) - parseInt(d3.select(this).attr('x1'));
 		});
-			col.append('text').attr('id',colI+'-'+j+'text').attr('data-name',names[j]).attr('class', 'secondaryCounts').attr('y',wP.fifthsH[1][1]).attr('x',col.select('.pgCount').attr('x')).attr('text-anchor','middle').attr('font-size',wP.fontSize)
+			col.append('text').attr('id',colI+'-'+j+'text').attr('data-name',names[j]).attr('class', 'secondaryCounts').attr('y',wP.fifthsH[1][1]).attr('x',col.select('.pgCount').attr('x')).attr('text-anchor','middle').attr('font-size',wP.fontSize*fontMulti)
 			.style('fill','black').style('stroke','black').style('opacity',1).style('stroke-width',0)
 			.text(secondaryCounts[names[j]]);
 
@@ -398,7 +414,7 @@ function eiko(controller, factors, iD, speed){
 				var name = d3.select(this).attr('data-name');
 				var prob = secondaryProbs[name];
 				cProb += prob;
-				var ret = self.yScale(middle(retValue,cProb))+wP.fontSize/2;
+				var ret = self.yScale(middle(retValue,cProb))+wP.fontSize*fontMulti/2;
 				yValues.push(ret);
 				return ret;
 			})
@@ -527,7 +543,10 @@ function eiko(controller, factors, iD, speed){
 		controller.cantContinue();
 		self.F2Ok = false;
 		factor2 = nfactors[0];
-		self.aFs = this.calcSecondaryFactor(factor1,factor2, iD);
+		//self.aFs = this.calcSecondaryFactor(factor1,factor2, iD)[0];
+		calRet =self.calcSecondaryFactor(factor1,factor2, iD);
+		self.aFs = calRet[0];
+		self.secValues = calRet[1];
 		self.showCounts();
 		self.secondaryTitle(self.wP,self.screen,self.rect, self.scale);
 	}
@@ -565,7 +584,8 @@ function eiko(controller, factors, iD, speed){
 		var cols = d3.selectAll('.pFCols');
 		var nums = cols.selectAll('.secondaryCounts');
 		nums.text(function(d,i){
-			return self.aFs[d]['secondary'][0][d3.keys(self.aFs[d]['secondary'][0]).sort()[i] + ' (' + self.propOutput(d,i) +')'];
+			var retVal = self.aFs[d]['secondary'][0][d3.keys(self.aFs[d]['secondary'][0]).sort()[i]] + ' (' + self.propOutput(d,i) +')';
+			return retVal;
 		}).style('opacity',1);
 	}
 	this.propOutput = function(d, i){
@@ -592,7 +612,7 @@ function WindowPos(rect){
 	//this.height = parseInt(mainEl.style('height'),10);
 	this.width = rect[1]-rect[0];
 	this.height = rect[3]-rect[2];
-	this.fontSize = Math.min(this.width,this.height)/20;
+	this.fontSize = Math.min(this.width,this.height)/30;
 	this.fifthsW = [];
 	this.oneFifthW = this.width/5;
 	this.fifthsH = [];
