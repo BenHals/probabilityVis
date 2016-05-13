@@ -418,7 +418,7 @@ function eiko(controller, factors, iD, speed){
 				yValues.push(ret);
 				return ret;
 			})
-		col.select('.pgCount').transition().duration(transTime).style('opacity',0).each('end',function(){
+		col.select('.pgCount').transition().duration(transTime).style('opacity',0).transition().duration(pauseDelay*2).each('end',function(){
 			d3.select(this).remove()
 			if(isLast){
 				//self.nameSecondary(wP,screen,rect, scale, yValues);
@@ -535,8 +535,9 @@ function eiko(controller, factors, iD, speed){
 			controller.cantContinue();
 			self.paused = false;
 			self.resume(self.wP,self.screen,self.rect,self.scale);
+			self.showCounts();
 		}
-		self.showCounts();
+		
 	}
 	this.continueF2 = function(nfactors){
 		self.paused = false;
