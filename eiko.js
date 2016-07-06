@@ -97,7 +97,18 @@ function eiko(controller, factors, iD, speed){
 		screen.append('text').attr('id','individuals').attr('x',middle(rect[1],rect[0])).attr('y',middle(rect[3],rect[2])+wP.fontSize*fontMulti*2).attr('text-anchor','middle').attr('font-size',wP.fontSize*fontMulti*2)
 				.style('fill','black').style('opacity',0.8)
 				.text('Individuals');
-
+		//Total
+		screen.append('line').attr('class','totals').attr('x1', rect[1]+strokeSize/2).attr('y1', rect[3]+strokeSize/2).attr('x2', rect[1] +strokeSize/2+ 50).attr('y2', rect[3]+strokeSize/2).style('stroke-width', strokeSize/4).style('stroke','black').style('opacity',0);
+		screen.append('line').attr('class','totals').attr('x1', rect[1]+strokeSize/2).attr('y1', rect[3]+strokeSize/2).attr('x2', rect[1]+strokeSize/2).attr('y2', rect[3] +strokeSize/2 + 50).style('stroke-width', strokeSize/4).style('stroke','black').style('opacity',0);
+		screen.append('text').attr('class', 'totals totalsValues').attr('x', rect[1] +strokeSize).attr('y', rect[3] + strokeSize + 25).attr('font-size',wP.fontSize*fontMulti)
+				.style('fill','black').style('opacity',0)
+				.text(iD.length)
+				.attr('count', iD.length)
+				.attr('colProp', null)
+				.attr('totProp', 1);
+		if(controller.showTotal && controller.currentShow != 'None'){
+			d3.selectAll('.totals').style('opacity',1);
+		}
 		setTimeout(function(){self.shiftDown(wP,screen,rect, scale)}, pauseDelay);
 	}
 	this.shiftDown = function(wP,screen,rect, scale){
@@ -357,6 +368,12 @@ function eiko(controller, factors, iD, speed){
 			screen.append('text').attr('class','sfNames').attr('x',self.mainWp.fifthsW[4][0]+10).attr('y',yValue).attr('text-anchor','left').attr('font-size',wP.fontSize*fontMulti)
 			.style('fill','black').style('opacity',0)
 			.text(secNames[i]);
+			screen.append('text').attr('class','totals totalsValues').attr('x',rect[1] + strokeSize).attr('y',yValue).attr('text-anchor','start').attr('font-size',wP.fontSize*fontMulti)
+			.style('fill','black').style('opacity',0)
+			.text(self.secC[secNames[i]])
+			.attr('count', self.secC[secNames[i]])
+			.attr('totProp', Math.round(self.secC[secNames[i]]/iD.length*100)/100)
+			.attr('colProp', null);
 			screen.append('rect').attr('class','sfColor').attr('x',self.mainWp.fifthsW[4][0]-20).attr('width',20).attr('y',yValue-15).attr('height',20)
 				//.style('fill', d3.rgb(pColors[i][0], pColors[i][1],pColors[i][2])).style('opacity',0);
 				.style('fill', pColsScale(i)).style('opacity',0).style('stroke','black').style('stroke-width',2).style('stroke-alignment','outer');
@@ -368,6 +385,12 @@ function eiko(controller, factors, iD, speed){
 			screen.append('text').attr('class','sfNames').attr('x',self.mainWp.fifthsW[4][0]+10).attr('y',yValue).attr('text-anchor','left').attr('font-size',wP.fontSize*fontMulti)
 			.style('fill','black').style('opacity',0)
 			.text(item);
+			screen.append('text').attr('class','totals totalsValues').attr('x',rect[1] + strokeSize).attr('y',yValue).attr('text-anchor','start').attr('font-size',wP.fontSize*fontMulti)
+			.style('fill','black').style('opacity',0)
+			.text(self.secC[item])
+			.attr('count', self.secC[item])
+			.attr('totProp', Math.round(self.secC[item]/iD.length*100)/100)
+			.attr('colProp', null);
 			screen.append('rect').attr('class','sfColor').attr('x',self.mainWp.fifthsW[4][0]-20).attr('width',20).attr('y',yValue-25).attr('height',20)
 				//.style('fill', d3.rgb(pColors[i][0], pColors[i][1],pColors[i][2])).style('opacity',0);
 				.style('fill', pColsScale(colCount)).style('stroke','black').style('stroke-width',2).style('stroke-alignment','outer');
@@ -504,6 +527,8 @@ function eiko(controller, factors, iD, speed){
 		AllProbs = new Object();
 		primeSplit = new Object();
 		secValues = new Set();
+		this.secC = new Object();
+		var self = this;
 		for (index in iD){
 			var o = iD[index];
 			val = o[pF];
@@ -523,6 +548,12 @@ function eiko(controller, factors, iD, speed){
 				d3.keys(AllProbs[p]['secondary'][n]).forEach(function(name){
 					if(name != 'total'){
 						secValues.add(name);
+					}
+					if(n == '0' || n == 0){
+						if(!(name in self.secC)){
+							self.secC[name] = 0;
+						}
+						self.secC[name] += AllProbs[p]['secondary'][0][name];
 					}
 				});
 			});
