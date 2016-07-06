@@ -84,6 +84,15 @@ function probView(controller){
 
 						</div>
 					</div>
+				<div id='showTotals' class='form-group'>
+						<label class = 'control-label' for='showTotals'>Show Totals</label>
+					<div class="checkbox">
+						<label>
+							<input id="showTotalsCheck" type="checkbox" value ="showTotal" name = "showTotal" checked="checked">
+							<span>Show Totals</span>
+						</label>
+					</div>
+				</div>
 				`);
 		$("input[name='showData']").click(function(){
 			controller.showDataChanged(this.value);
@@ -91,6 +100,10 @@ function probView(controller){
 		$("input[name='propType']").click(function(){
 			controller.showDataChanged($("input[name='showData']:checked").val());
 		});
+		$("input[name='showTotal']").click(function(){
+			controller.showTotalChanged($("input[name='showTotal']:checked").val());
+		});
+
 	}
 	this.getShowData = function(){
 		return $("input[name='showData']:checked").val();

@@ -8,6 +8,8 @@ function probability(){
 	this.view.init()
 	this.model = new probModel(this)
 	oldFactors = [-2,-2];
+	this.showTotal = true;
+	this.currentShow = 'None';
 	this.getColors = function(){
 		return pColors;
 	}
@@ -36,12 +38,17 @@ function probability(){
 	this.getShowData = function(){
 		var val = this.view.getShowData();
 		this.showDataChanged(val);
+		this.currentShow = val;
 	}
 	this.showDataChanged = function(value){
 		if(value == 'None') this.dataDisplay.hideCounts();
 		if(value == 'Counts') this.dataDisplay.showCounts();
 		if(value == 'Proportions') this.dataDisplay.showProportionTotal();
 		if(value == 'Both') this.dataDisplay.showBoth();
+	}
+	this.showTotalChanged = function(value){
+		this.showTotal = !this.showTotal;
+		this.dataDisplay.showTotalChanged(this.showTotal);
 	}
 	this.getPropType = function(){
 		return this.view.getPropType();
