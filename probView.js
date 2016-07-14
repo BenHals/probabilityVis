@@ -5,25 +5,25 @@ function probView(controller){
 			var size = $('#fontControl');
 			if(e.which == 97){
 				range.val(range.val()-0.1);
-				$('#sClabel').text('Visualisation Speed = ' + range.val());
+				$('#sClabel').text('Speed (<==A D ==>) = ' + range.val());
 				controller.speedChanged(range.val());
 			}
 			if(e.which == 100){
 				var newVar = parseFloat(range.val())+0.1;
 				range.val(newVar);
-				$('#sClabel').text('Visualisation Speed = ' + range.val());
+				$('#sClabel').text('Speed (<==A D ==>) = ' + range.val());
 				controller.speedChanged(range.val());
 			}
 			if(e.which == 119){
 				var newVar = parseFloat(size.val())+0.1;
 				size.val(newVar);
-				$('#fSLabel').text('Font Size = ' + size.val());
+				$('#fSLabel').text('Font Size (<==S W ==>) = ' + size.val());
 				controller.fontChanged(size.val());
 			}
 			if(e.which == 115){
 				var newVar = parseFloat(size.val())-0.1;
 				size.val(newVar);
-				$('#fSLabel').text('Font Size = ' + size.val());
+				$('#fSLabel').text('Font Size (<==S W ==>) = ' + size.val());
 				controller.fontChanged(size.val());
 			}
 		});
@@ -41,6 +41,7 @@ function probView(controller){
 		this.suFactorSelectors(headings);
 		this.suSwapFactorsUI();
 		this.setUpControls();
+		this.suPlayControlsUI();
 		callback();
 	}
 	this.suDataUI = function(){
@@ -173,6 +174,14 @@ function probView(controller){
 			controller.continue();
 		})
 	}
+	this.suPlayControlsUI = function(){
+		oC = $("#playControlsUI");
+		oC.html("");
+		var button = $("<button>").attr('id','replay').attr('type','button').attr('class','btn btn-default action-button').text("Replay").appendTo(oC);
+		button.click(function(){
+			controller.replay();
+		});
+	}
 	this.canContinue = function(){
 		d3.select('#continue').classed('btn-success',true);
 	}
@@ -180,21 +189,21 @@ function probView(controller){
 		d3.select('#continue').classed('btn-success',false);
 	}
 	this.setUpControls = function(){
-		oC = $('#countsGrid');
-		oC.html(`<label for='speedControl' id='sClabel'>Visualisation Speed = 1</label>
-			<input id='speedControl' name='speedControl' type='range' value='1' min='0.1' max = '5' step='0.1'>
-				<label for='fontControl' id ='fSLabel'>Font Size = 1</label>
+		oC = $('#speedControlsUI');
+		oC.html(`<label for='speedControl' id='sClabel'>Speed (<==A D ==>) = 1</label>
+			<input id='speedControl' name='speedControl' type='range' value='1' min='0.2' max = '5' step='0.1'>
+				<label for='fontControl' id ='fSLabel'>Font Size (<==S W ==>) = 1</label>
 				<input id='fontControl' name='fontControl' type='range' value='1' min='0.1' max = '2' step='0.1'>`);
 		var range = $('#speedControl');
 		range.on("change mousemove", function(){
-			$('#sClabel').text('Visualisation Speed = ' + range.val());
+			$('#sClabel').text('Speed (<==A D ==>) = ' + range.val());
 			controller.speedChanged(range.val());
 		});
 
 
 		var fRange = $('#fontControl');
 		fRange.on("change mousemove", function(){
-			$('#fSLabel').text('Font Size = ' + fRange.val());
+			$('#fSLabel').text('Font Size (<==S W ==>) = ' + fRange.val());
 			controller.fontChanged(fRange.val());
 		});
 

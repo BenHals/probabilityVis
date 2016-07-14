@@ -83,6 +83,9 @@ function probability(){
 	this.cantContinue = function(){
 		this.view.cantContinue();
 	}
+	this.replay = function(){
+		this.dataDisplay.replay();
+	}
 }
 var mainControl = null;
 window.onload = function(){
