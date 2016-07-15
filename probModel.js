@@ -12,6 +12,7 @@ function probModel(controller){
 			self.setUpDataVeiw(csv);
 		}
 
+
 	}
 	this.setUpDataVeiw = function(csv){
 		var parsed = d3.csv.parse(csv);

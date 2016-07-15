@@ -31,6 +31,15 @@ function probView(controller){
 		IB.onchange = function(e){
 			controller.impButPressed(e);
 		}
+		$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+			var target = $(e.target).attr("href") // activated tab
+ 			if(target == "#tab-4190-1"){
+ 				controller.switchEiko();
+ 			}
+ 			if(target == "#tab-4190-2"){
+ 				controller.switchInd();
+ 			}
+		});
 	}
 	this.getFactors = function(){
 		return [$("#fac1").val(), $("#fac2").val()];

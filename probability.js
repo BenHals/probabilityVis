@@ -10,6 +10,7 @@ function probability(){
 	oldFactors = [-2,-2];
 	this.showTotal = true;
 	this.currentShow = 'None';
+	currentTab = 'eiko';
 	this.getColors = function(){
 		return pColors;
 	}
@@ -27,7 +28,13 @@ function probability(){
 	}
 	this.createDisplay = function(){
 		factors = self.getFactors();
-		self.dataDisplay = new eiko(self,[self.model.getHeading(factors[0]),self.model.getHeading(factors[1])], self.model.getData(), self.view.getSpeed());
+		self.eiko = new eiko(self,[self.model.getHeading(factors[0]),self.model.getHeading(factors[1])], self.model.getData(), self.view.getSpeed());
+		self.ind = new ind(self,[self.model.getHeading(factors[0]),self.model.getHeading(factors[1])], self.model.getData(), self.view.getSpeed());
+		if(currentTab == 'eiko'){
+			self.dataDisplay = self.eiko;
+		}else if(currentTab == 'ind'){
+			self.dataDisplay = self.ind;
+		}
 	}
 	this.finToolSU = function(){
 		self.destroyScreen(self.createDisplay);
@@ -85,6 +92,14 @@ function probability(){
 	}
 	this.replay = function(){
 		this.dataDisplay.replay();
+	}
+	this.switchEiko = function(){
+		self.dataDisplay = self.eiko;
+		currentTab = 'eiko';
+	}
+	this.switchInd = function(){
+		self.dataDisplay = self.ind;
+		currentTab = 'ind';
 	}
 }
 var mainControl = null;
